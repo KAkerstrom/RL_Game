@@ -1,0 +1,12 @@
+
+Schema:
+    Entity:
+        EntityId : int (pk)
+        Components : List<ComponentId> (fk)
+        ComponentBitArray : BitArray
+
+    Component
+        ComponentId : int (pk)
+        ComponentTypeId : int
+        ComponentTypeBit : BitArray
+        (each component has its own data - in relational terms, this is a join table)

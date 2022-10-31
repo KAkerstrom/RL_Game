@@ -12,7 +12,7 @@ namespace RL_Game.Core
         {
             var tiles = new Tile[width, height];
             var player = new Player();
-            var map = new GameMap(tiles, new RogueSharp.Point(40, 22), new List<Actor>(), player);
+            var map = new GameMap(tiles, new RogueSharp.Point(40, 22));
             return map;
         }
     }

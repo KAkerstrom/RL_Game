@@ -1,8 +1,8 @@
 ﻿using RLNET;
 using RL_Game.Core;
-using System;
 using RogueSharp.Random;
-using System.Numerics;
+using RL_Game.Systems;
+using RL_Game.Components;
 
 namespace RL_Game
 {
@@ -41,9 +41,7 @@ namespace RL_Game
 
         private static bool _renderRequired = true;
 
-
-
-        public static void Main()
+        public static void Run()
         {
             // Establish the seed for the random number generator from the current time
             int seed = (int)DateTime.UtcNow.Ticks;
@@ -64,11 +62,20 @@ namespace RL_Game
             _statConsole = new RLConsole(_statWidth, _statHeight);
             _inventoryConsole = new RLConsole(_inventoryWidth, _inventoryHeight);
 
+            // Initialize Player
+            var playerComponents = new List<Component>()
+            {
+                new DrawComponent('@', RLColor.White),
+                new PositionComponent(5,5)
+            };
+            Entity player = new Entity(playerComponents);
+            EntityManager.InitializePlayer(player);
+
+
+
             //MapGenerator mapGenerator = new MapGenerator(_mapWidth, _mapHeight, 40, 22, 7, _mapLevel);
             GameMap = MapFactory.CreateMap(200, 200);
-            GameMap.UpdatePlayerFieldOfView();
-
-            CommandSystem = new CommandSystem();
+            GameMap.UpdatePlayerFov();
 
             // Set up a handler for RLNET's Update event
             _rootConsole.Update += OnRootConsoleUpdate;
@@ -87,91 +94,61 @@ namespace RL_Game
         // Event handler for RLNET's Update event
         private static void OnRootConsoleUpdate(object sender, UpdateEventArgs e)
         {
-            bool didPlayerAct = false;
             RLKeyPress keyPress = _rootConsole.Keyboard.GetKeyPress();
-
-            // Handles player movement and turns by characters
-            if (CommandSystem.IsPlayerTurn)
+            var playerAction = InputSystem.ProcessInput(keyPress);
+            if (playerAction == null)
             {
-                if (keyPress != null)
-                {
-                    if (keyPress.Key == RLKey.Up)
-                    {
-                        didPlayerAct = CommandSystem.MovePlayer(Direction.Up);
-                    }
-                    else if (keyPress.Key == RLKey.Down)
-                    {
-                        didPlayerAct = CommandSystem.MovePlayer(Direction.Down);
-                    }
-                    else if (keyPress.Key == RLKey.Left)
-                    {
-                        didPlayerAct = CommandSystem.MovePlayer(Direction.Left);
-                    }
-                    else if (keyPress.Key == RLKey.Right)
-                    {
-                        didPlayerAct = CommandSystem.MovePlayer(Direction.Right);
-                    }
-                    else if (keyPress.Key == RLKey.Escape)
-                    {
-                        _rootConsole.Close();
-                    }
-                    else if (keyPress.Key == RLKey.Space)
-                    {
-                        if (GameMap.CanMoveDownToNextLevel())
-                        {
-                            MapGenerator mapGenerator = new MapGenerator(_mapWidth, _mapHeight, 20, 13, 7, ++_mapLevel);
-                            GameMap = mapGenerator.CreateMap();
-                            MessageLog = new MessageLog();
-                            CommandSystem = new CommandSystem();
-                            _rootConsole.Title = $"Rogue - Level {_mapLevel}";
-                            didPlayerAct = true;
-                        }
-                    }
-                }
+                return;
+            }
 
-                if (didPlayerAct)
-                {
-                    _renderRequired = true;
-                    CommandSystem.EndPlayerTurn();
-                }
-            }
-            else
+            // Add the player's action to the queue
+            ActionSystem.EnqueueAction(playerAction);
+
+            // Perform the actions in the queue
+            foreach (var action in ActionSystem.DequeueAllActions())
             {
-                CommandSystem.ActivateMonsters();
-                _renderRequired = true;
+                action.PerformAction();
             }
+
+            _renderRequired = true;
         }
 
         // Event handler for RLNET's Render event
         private static void OnRootConsoleRender(object sender, UpdateEventArgs e)
         {
-            if (_renderRequired)
+            if (!_renderRequired)
             {
-                // Clear the consoles for a new level
-                _mapConsole.Clear();
-                _statConsole.Clear();
-                _messageConsole.Clear();
-                _inventoryConsole.Clear();
-
-                // Draw everything to the map
-                GameMap.Draw(_mapConsole, _statConsole);
-                Player.Draw(_mapConsole, GameMap);
-                Player.DrawStats(_statConsole, _statWidth, _statHeight);
-                Player.DrawInventory(_inventoryConsole);
-                MessageLog.Draw(_messageConsole, _messageWidth, _messageHeight);
-
-                // Blit the sub consoles to the root console in the correct locations
-                RLConsole.Blit(_mapConsole, 0, 0, _mapWidth, _mapHeight, _rootConsole, 0, _inventoryHeight);
-                RLConsole.Blit(_messageConsole, 0, 0, _messageWidth, _messageHeight, _rootConsole, 0, _screenHeight - _messageHeight);
-                RLConsole.Blit(_statConsole, 0, 0, _statWidth, _statHeight, _rootConsole, _mapWidth, 0);
-                RLConsole.Blit(_inventoryConsole, 0, 0, _inventoryWidth, _inventoryHeight, _rootConsole, 0, 0);
-
-                // Tell RLNET to draw the console that we set
-                _rootConsole.Draw();
-
-                _renderRequired = false;
+                return;
             }
+
+            // Clear the consoles for a new level
+            _mapConsole.Clear();
+            _statConsole.Clear();
+            _messageConsole.Clear();
+            _inventoryConsole.Clear();
+
+            // Draw everything to the map
+            GameMap.Draw(_mapConsole, _statConsole);
+            //Player.Draw(_mapConsole, GameMap);
+            //Player.DrawStats(_statConsole, _statWidth, _statHeight);
+            //Player.DrawInventory(_inventoryConsole);
+            //MessageLog.Draw(_messageConsole, _messageWidth, _messageHeight);
+
+            // Blit the sub consoles to the root console in the correct locations
+            RLConsole.Blit(_mapConsole, 0, 0, _mapWidth, _mapHeight, _rootConsole, 0, _inventoryHeight);
+            RLConsole.Blit(_messageConsole, 0, 0, _messageWidth, _messageHeight, _rootConsole, 0, _screenHeight - _messageHeight);
+            RLConsole.Blit(_statConsole, 0, 0, _statWidth, _statHeight, _rootConsole, _mapWidth, 0);
+            RLConsole.Blit(_inventoryConsole, 0, 0, _inventoryWidth, _inventoryHeight, _rootConsole, 0, 0);
+
+            // Tell RLNET to draw the console that we set
+            _rootConsole.Draw();
+
+            _renderRequired = false;
         }
 
+        public static void CloseGame()
+        {
+            _rootConsole.Close();
+        }
     }
 }
