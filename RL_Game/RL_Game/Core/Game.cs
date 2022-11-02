@@ -3,16 +3,17 @@ using RL_Game.Core;
 using RogueSharp.Random;
 using RL_Game.Systems;
 using RL_Game.Components;
+using Action = RL_Game.Actions.Action;
 
 namespace RL_Game
 {
     public static class Game
     {
         // The screen height and width are in number of tiles
-        private static readonly int _screenWidth = 200;
-        private static readonly int _screenHeight = 100;
+        private static readonly int _screenWidth = 100;
+        private static readonly int _screenHeight = 50;
         private static RLRootConsole _rootConsole;
-
+          
 
         // The map console takes up most of the screen and is where the map will be drawn
         private static readonly int _mapWidth = 180;
@@ -37,8 +38,6 @@ namespace RL_Game
         public static GameMap GameMap { get; private set; }
         public static IRandom Random { get; private set; } // For generating the level seed
 
-        public static Player Player { get; set; }
-
         private static bool _renderRequired = true;
 
         public static void Run()
@@ -47,14 +46,22 @@ namespace RL_Game
             int seed = (int)DateTime.UtcNow.Ticks;
             Random = new DotNetRandom(seed);
 
-            // This must be the exact name of the bitmap font file we are using or it will error.
-            string fontFileName = "terminal8x8.png";
-
             // The title will appear at the top of the console window along with the seed used to generate the level
             string consoleTitle = $"RL Game";
 
             // Tell RLNet to use the bitmap font that we specified and that each tile is 8 x 8 pixels
-            _rootConsole = new RLRootConsole(fontFileName, _screenWidth, _screenHeight, 8, 8, 1f, consoleTitle);
+            var screenSettings = new RLSettings()
+            {
+                BitmapFile = "terminal16x16.png",
+                Title = "RL Game",
+                Width = _screenWidth,
+                Height = _screenHeight,
+                CharWidth = 16,
+                CharHeight = 16,
+                StartWindowState = RLWindowState.Maximized
+            };
+
+            _rootConsole = new RLRootConsole(screenSettings);
 
             // Initialize the sub consoles that we will Blit to the root console
             _mapConsole = new RLConsole(_mapWidth, _mapHeight);
@@ -71,10 +78,8 @@ namespace RL_Game
             Entity player = new Entity(playerComponents);
             EntityManager.InitializePlayer(player);
 
-
-
             //MapGenerator mapGenerator = new MapGenerator(_mapWidth, _mapHeight, 40, 22, 7, _mapLevel);
-            GameMap = MapFactory.CreateMap(200, 200);
+            GameMap = MapFactory.CreateMap(50, 50);
             GameMap.UpdatePlayerFov();
 
             // Set up a handler for RLNET's Update event
@@ -107,7 +112,7 @@ namespace RL_Game
             // Perform the actions in the queue
             foreach (var action in ActionSystem.DequeueAllActions())
             {
-                action.PerformAction();
+                action.Perform();
             }
 
             _renderRequired = true;
@@ -123,9 +128,9 @@ namespace RL_Game
 
             // Clear the consoles for a new level
             _mapConsole.Clear();
-            _statConsole.Clear();
-            _messageConsole.Clear();
-            _inventoryConsole.Clear();
+            //_statConsole.Clear();
+            //_messageConsole.Clear();
+            //_inventoryConsole.Clear();
 
             // Draw everything to the map
             GameMap.Draw(_mapConsole, _statConsole);
@@ -135,10 +140,10 @@ namespace RL_Game
             //MessageLog.Draw(_messageConsole, _messageWidth, _messageHeight);
 
             // Blit the sub consoles to the root console in the correct locations
-            RLConsole.Blit(_mapConsole, 0, 0, _mapWidth, _mapHeight, _rootConsole, 0, _inventoryHeight);
-            RLConsole.Blit(_messageConsole, 0, 0, _messageWidth, _messageHeight, _rootConsole, 0, _screenHeight - _messageHeight);
-            RLConsole.Blit(_statConsole, 0, 0, _statWidth, _statHeight, _rootConsole, _mapWidth, 0);
-            RLConsole.Blit(_inventoryConsole, 0, 0, _inventoryWidth, _inventoryHeight, _rootConsole, 0, 0);
+            RLConsole.Blit(_mapConsole, 0, 0, _mapWidth, _mapHeight, _rootConsole, 0, 0);
+            //RLConsole.Blit(_messageConsole, 0, 0, _messageWidth, _messageHeight, _rootConsole, 0, _screenHeight - _messageHeight);
+            //RLConsole.Blit(_statConsole, 0, 0, _statWidth, _statHeight, _rootConsole, _mapWidth, 0);
+            //RLConsole.Blit(_inventoryConsole, 0, 0, _inventoryWidth, _inventoryHeight, _rootConsole, 0, 0);
 
             // Tell RLNET to draw the console that we set
             _rootConsole.Draw();

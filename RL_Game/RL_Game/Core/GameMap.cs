@@ -10,7 +10,7 @@ namespace RL_Game.Core
     {
         private Rectangle _playerView = new Rectangle();
         private Tile[,] _tiles;
-        private FieldOfView fov;
+        private FieldOfView _fov;
 
         public GameMap(Tile[,] tileMap, Point playerViewSize)
             : base(tileMap.GetUpperBound(0) + 1, tileMap.GetUpperBound(1) + 1)
@@ -24,8 +24,17 @@ namespace RL_Game.Core
             var playerPosition = playerPositionComponent.Point;
 
             _tiles = tileMap;
+            _fov = new FieldOfView(this);
+
             _playerView = new Rectangle(playerPosition.X - playerViewSize.X / 2, playerPosition.Y - playerViewSize.Y / 2, playerViewSize.X, playerViewSize.Y);
-            fov = new FieldOfView(this);
+            if(_playerView.Top < 0)
+            {
+                _playerView.Offset(0, _playerView.Top * -1);
+            }
+            if (_playerView.Left < 0)
+            {
+                _playerView.Offset(_playerView.Left * -1, 0);
+            }  
         }
 
         public void Draw(RLConsole mapConsole, RLConsole statConsole)
@@ -34,7 +43,7 @@ namespace RL_Game.Core
             {
                 if (cell.IsExplored)
                 {
-                    if (fov.IsInFov(cell.X, cell.Y))
+                    if (_fov.IsInFov(cell.X, cell.Y))
                     {
                         if (cell.IsWalkable)
                         {
@@ -42,14 +51,14 @@ namespace RL_Game.Core
                         }
                         else
                         {
-                            mapConsole.Set(cell.X, cell.Y, DefaultColors.BackgroundVisible, DefaultColors.ForegroundVisible, '#');
+                            mapConsole.Set(cell.X, cell.Y, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '#');
                         }
 
                     }
                 }
             }
 
-            foreach (var entity in GetEntitiesInFov(fov, EntityManager.PlayerEntity))
+            foreach (var entity in GetEntitiesInFov(_fov, EntityManager.PlayerEntity))
             {
                 var draw = entity.GetFirstComponent((int)Component.ComponentTypeIds.Draw) as DrawComponent;
                 var position = entity.GetFirstComponent((int)Component.ComponentTypeIds.Position) as PositionComponent;
@@ -58,7 +67,7 @@ namespace RL_Game.Core
                 {
                     continue;
                 }
-                mapConsole.Set(position.X, position.Y, DefaultColors.BackgroundVisible, draw.Forecolor, draw.Symbol);
+                mapConsole.Set(position.X - _playerView.Left, position.Y - _playerView.Top, draw.Forecolor, DefaultColors.BackgroundVisible, draw.Symbol);
             }
         }
 
@@ -72,7 +81,7 @@ namespace RL_Game.Core
             }
             var playerPosition = playerPositionComponent.Point;
 
-            var cellsInView = fov.ComputeFov(playerPosition.X, playerPosition.Y, 5, true); // TODO - variable sight
+            var cellsInView = _fov.ComputeFov(playerPosition.X, playerPosition.Y, 5, true); // TODO - variable sight
             foreach (Cell cell in cellsInView)
             {
                 SetCellProperties(cell.X, cell.Y, cell.IsTransparent, cell.IsWalkable, true);

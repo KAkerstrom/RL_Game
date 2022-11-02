@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Action = RL_Game.Actions.Action;
 
 namespace RL_Game.Systems
 {
@@ -36,7 +37,7 @@ namespace RL_Game.Systems
         /// </summary>
         /// <param name="key">The key pressed.</param>
         /// <returns>Whether the input was processed.</returns>
-        public static IAction? ProcessInput(RLKeyPress key)
+        public static Action? ProcessInput(RLKeyPress key)
         {
             if (key == null || !KeyMap.TryGetValue(key.Key, out var input))
             {

@@ -1,9 +1,41 @@
 ﻿namespace RL_Game.Actions
 {
-    public interface IAction
+    public abstract class Action
     {
-        int EntityId { get; }
+        public enum ActionResponse // TODO - This seems like it'll need something more descriptive rather than just a boolean
+        {
+            Allow,
+            Block
+        }
 
-        void PerformAction();
+        public delegate ActionResponse BeforeActionPerformedDelegate(Action action);
+        public static BeforeActionPerformedDelegate BeforeActionPerformed;
+
+        public delegate void AfterActionPerformedDelegate(Action action);
+        public static AfterActionPerformedDelegate AfterActionPerformed;
+
+        public int EntityId { get; protected set; }
+
+        public Action(int entityId)
+        {
+            EntityId = entityId;
+        }
+
+        public void Perform()
+        {
+            // Check if anything interferes with this action being performed
+            var allResponses = BeforeActionPerformed
+                ?.GetInvocationList()
+                .Select(x => ((BeforeActionPerformedDelegate)x)(this));
+            var response = allResponses != null && allResponses.Any(value => value == ActionResponse.Block)
+                ? ActionResponse.Block
+                : ActionResponse.Allow;
+
+            PerformAction(response);
+
+            AfterActionPerformed?.Invoke(this);
+        }
+
+        protected abstract void PerformAction(ActionResponse response);
     }
 }

@@ -11,7 +11,6 @@ namespace RL_Game.Core
         public static GameMap CreateMap(int width, int height)
         {
             var tiles = new Tile[width, height];
-            var player = new Player();
             var map = new GameMap(tiles, new RogueSharp.Point(40, 22));
             return map;
         }

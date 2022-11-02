@@ -8,7 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="terminal8x8.png">
+    <None Remove="terminal16x16.png" />
+    <None Remove="terminal8x8.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="terminal16x16.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
