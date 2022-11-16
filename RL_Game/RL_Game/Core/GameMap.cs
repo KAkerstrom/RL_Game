@@ -17,7 +17,7 @@ namespace RL_Game.Core
         {
             var player = EntityManager.PlayerEntity;
             var playerPositionComponent = player.GetFirstComponent((int)Component.ComponentTypeIds.Position) as PositionComponent;
-            if(playerPositionComponent == null)
+            if (playerPositionComponent == null)
             {
                 throw new NullReferenceException("Player missing position component.");
             }
@@ -27,33 +27,56 @@ namespace RL_Game.Core
             _fov = new FieldOfView(this);
 
             _playerView = new Rectangle(playerPosition.X - playerViewSize.X / 2, playerPosition.Y - playerViewSize.Y / 2, playerViewSize.X, playerViewSize.Y);
-            if(_playerView.Top < 0)
+            if (_playerView.Top < 0) _playerView.Offset(0, _playerView.Top * -1);
+            if (_playerView.Left < 0) _playerView.Offset(_playerView.Left * -1, 0);
+            //if (_playerView.Bottom > Height) _playerView.Offset(0, (_playerView.Bottom - Height) * -1);
+            //if (_playerView.Left > Width) _playerView.Offset((_playerView.Right - Width) * -1, 0);
+
+
+            for (var i = 0; i < _tiles.GetUpperBound(0); i++)
             {
-                _playerView.Offset(0, _playerView.Top * -1);
+                for (var j = 0; j < _tiles.GetUpperBound(1); j++)
+                {
+                    var walkable = _tiles[i, j] != Tile.StoneWall;
+                    SetCellProperties(i, j, walkable, walkable);
+                }
             }
-            if (_playerView.Left < 0)
+
+            foreach (var entity in EntityManager.GetEntitiesWithComponentType((int)Component.ComponentTypeIds.Position))
             {
-                _playerView.Offset(_playerView.Left * -1, 0);
-            }  
+                var position = entity.GetFirstComponent((int)Component.ComponentTypeIds.Position) as PositionComponent;
+                if (position == null)
+                {
+                    continue;
+                }
+                SetCellProperties(position.X, position.Y, true, false);
+            }
         }
 
-        public void Draw(RLConsole mapConsole, RLConsole statConsole)
+        public void Draw(RLConsole mapConsole)
         {
             foreach (var cell in GetCellsInRectangle(_playerView))
             {
-                if (cell.IsExplored)
+                if (_fov.IsInFov(cell.X, cell.Y))
                 {
-                    if (_fov.IsInFov(cell.X, cell.Y))
+                    if (cell.IsWalkable)
                     {
-                        if (cell.IsWalkable)
-                        {
-                            mapConsole.Set(cell.X, cell.Y, DefaultColors.BackgroundVisible, DefaultColors.BackgroundVisible, ' ');
-                        }
-                        else
-                        {
-                            mapConsole.Set(cell.X, cell.Y, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '#');
-                        }
-
+                        //mapConsole.Set(cell.X - _playerView.Left, cell.Y - _playerView.Top, DefaultColors.BackgroundVisible, DefaultColors.BackgroundVisible, ' ');
+                    }
+                    else
+                    {
+                        mapConsole.Set(cell.X - _playerView.Left, cell.Y - _playerView.Top, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '#');
+                    }
+                }
+                else if (cell.IsExplored)
+                {
+                    if (cell.IsWalkable)
+                    {
+                        //mapConsole.Set(cell.X - _playerView.Left, cell.Y - _playerView.Top, DefaultColors.BackgroundVisible, DefaultColors.BackgroundVisible, ' ');
+                    }
+                    else
+                    {
+                        mapConsole.Set(cell.X - _playerView.Left, cell.Y - _playerView.Top, DefaultColors.ForegroundHidden, DefaultColors.BackgroundVisible, '#');
                     }
                 }
             }
@@ -88,13 +111,29 @@ namespace RL_Game.Core
             }
         }
 
+        public void SetPlayerViewCenter(Point point)
+        {
+            _playerView.X = point.X - _playerView.Width / 2;
+            _playerView.Y = point.Y - _playerView.Height / 2;
+            if (_playerView.Top < 0) _playerView.Y = 0;
+            if (_playerView.Left < 0) _playerView.X = 0;
+            if (_playerView.Bottom >= Height) _playerView.Y = Height - _playerView.Height;
+            if (_playerView.Right >= Width) _playerView.X = Width - _playerView.Width;
+            UpdatePlayerFov();
+        }
+
+        //public Point WorldPointToViewPoint(Point absolute)
+        //{
+        //    // Create a version of the player view that isn't adjusted for world bounds
+        //}
+
         private IEnumerable<ICell> GetCellsInRectangle(Rectangle rectangle)
         {
             for (int x = rectangle.Left; x < rectangle.Left + rectangle.Width; x++)
             {
                 for (int y = rectangle.Top; y < rectangle.Top + rectangle.Height; y++)
                 {
-                    if (x < 0 || x > Width || y < 0 || y > Height)
+                    if (x < 0 || x >= Width || y < 0 || y >= Height)
                     {
                         continue;
                     }
@@ -107,7 +146,7 @@ namespace RL_Game.Core
         private IEnumerable<Entity> GetEntitiesInFov(FieldOfView fov, Entity fovEntity)
         {
             var fovPosition = fovEntity.GetFirstComponent((int)Component.ComponentTypeIds.Position) as PositionComponent;
-            if(fovPosition == null)
+            if (fovPosition == null)
             {
                 yield break;
             }
@@ -119,12 +158,12 @@ namespace RL_Game.Core
                 var draw = entity.GetFirstComponent((int)Component.ComponentTypeIds.Draw) as DrawComponent;
                 var position = entity.GetFirstComponent((int)Component.ComponentTypeIds.Position) as PositionComponent;
 
-                if(draw == null || position == null)
+                if (draw == null || position == null)
                 {
                     continue;
                 }
 
-                if(fov.IsInFov(position.X, position.Y))
+                if (fov.IsInFov(position.X, position.Y))
                 {
                     yield return entity;
                 }

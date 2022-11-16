@@ -110,11 +110,13 @@ namespace RL_Game
             ActionSystem.EnqueueAction(playerAction);
 
             // Perform the actions in the queue
-            foreach (var action in ActionSystem.DequeueAllActions())
+            while (ActionSystem.AreActionsQueued)
             {
+                var action = ActionSystem.GetNextAction();
                 action.Perform();
             }
 
+            GameMap.UpdatePlayerFov();
             _renderRequired = true;
         }
 
@@ -133,7 +135,7 @@ namespace RL_Game
             //_inventoryConsole.Clear();
 
             // Draw everything to the map
-            GameMap.Draw(_mapConsole, _statConsole);
+            GameMap.Draw(_mapConsole);
             //Player.Draw(_mapConsole, GameMap);
             //Player.DrawStats(_statConsole, _statWidth, _statHeight);
             //Player.DrawInventory(_inventoryConsole);

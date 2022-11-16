@@ -30,6 +30,7 @@ namespace RL_Game.Systems
             {  RLKey.Down, Inputs.Down },
             {  RLKey.Left, Inputs.Left },
             {  RLKey.Right, Inputs.Right },
+            {  RLKey.Escape, Inputs.Escape },
         };
 
         /// <summary>

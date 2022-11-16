@@ -7,6 +7,6 @@ namespace RL_Game.Core
         public static RLColor BackgroundVisible = RLColor.Black;
         public static RLColor ForegroundVisible = RLColor.White;
         public static RLColor BackgroundHidden = RLColor.Black;
-        public static RLColor ForegroundHidden = RLColor.LightGray;
+        public static RLColor ForegroundHidden = RLColor.Gray;
     }
 }

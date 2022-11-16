@@ -8,6 +8,11 @@
             Block
         }
 
+        public enum ActionTypes
+        {
+            Move,
+        }
+
         public delegate ActionResponse BeforeActionPerformedDelegate(Action action);
         public static BeforeActionPerformedDelegate BeforeActionPerformed;
 
@@ -16,9 +21,12 @@
 
         public int EntityId { get; protected set; }
 
-        public Action(int entityId)
+        public ActionTypes ActionType;
+
+        public Action(int entityId, ActionTypes actionType)
         {
             EntityId = entityId;
+            ActionType = actionType;
         }
 
         public void Perform()
