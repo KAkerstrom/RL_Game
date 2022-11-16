@@ -11,6 +11,7 @@ namespace RL_Game.Core
         private Rectangle _playerView = new Rectangle();
         private Tile[,] _tiles;
         private FieldOfView _fov;
+        public Rectangle View { get => new Rectangle(0, 0, _playerView.Width, _playerView.Height); }
 
         public GameMap(Tile[,] tileMap, Point playerViewSize)
             : base(tileMap.GetUpperBound(0) + 1, tileMap.GetUpperBound(1) + 1)

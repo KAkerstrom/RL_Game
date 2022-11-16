@@ -11,7 +11,6 @@ namespace RL_Game.Systems
     {
         public static void Draw()
         {
-
         }
     }
 }
