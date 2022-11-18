@@ -4,6 +4,7 @@ using RogueSharp.Random;
 using RL_Game.Systems;
 using RL_Game.Components;
 using Action = RL_Game.Actions.Action;
+using RogueSharp;
 
 namespace RL_Game
 {
@@ -144,8 +145,11 @@ namespace RL_Game
             //Player.DrawInventory(_inventoryConsole);
             //MessageLog.Draw(_messageConsole, _messageWidth, _messageHeight);
 
+            // Draw borders
+
             // Blit the sub consoles to the root console in the correct locations
-            RLConsole.Blit(_mapConsole, 0, 0, _mapWidth, _mapHeight, _rootConsole, 0, 0);
+            RLConsole.Blit(_mapConsole, 0, 0, _mapWidth, _mapHeight, _rootConsole, 1, 1);
+            DrawRectangle(_rootConsole, new Rectangle(0,0, GameMap.View.Width + 1, GameMap.View.Height + 1));
             //RLConsole.Blit(_messageConsole, 0, 0, _messageWidth, _messageHeight, _rootConsole, 0, _screenHeight - _messageHeight);
             //RLConsole.Blit(_statConsole, 0, 0, _statWidth, _statHeight, _rootConsole, _mapWidth, 0);
             //RLConsole.Blit(_inventoryConsole, 0, 0, _inventoryWidth, _inventoryHeight, _rootConsole, 0, 0);
@@ -154,6 +158,29 @@ namespace RL_Game
             _rootConsole.Draw();
 
             _renderRequired = false;
+        }
+
+        private static void DrawRectangle(RLConsole console, Rectangle rectangle)
+        {
+            // Horizontal top/bottom
+            for (int x = rectangle.X + 1; x < rectangle.X + rectangle.Width; x++)
+            {
+                console.Set(x, rectangle.Y, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '═');
+                console.Set(x, rectangle.Y + rectangle.Height, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '═');
+            }
+
+            // Vertical left/right
+            for (int y = rectangle.X + 1; y < rectangle.Y + rectangle.Height; y++)
+            {
+                console.Set(rectangle.X, y, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '║');
+                console.Set(rectangle.X + rectangle.Width, y, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '║');
+            }
+
+            // Corners
+            console.Set(rectangle.X, rectangle.Y, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '╔');
+            console.Set(rectangle.X + rectangle.Width, rectangle.Y, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '╗');
+            console.Set(rectangle.X, rectangle.Y + rectangle.Height, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '╚');
+            console.Set(rectangle.X + rectangle.Width, rectangle.Y + rectangle.Height, DefaultColors.ForegroundVisible, DefaultColors.BackgroundVisible, '╝');
         }
 
         public static void CloseGame()
