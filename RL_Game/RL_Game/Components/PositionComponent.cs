@@ -10,16 +10,24 @@ namespace RL_Game.Components
 
         public Point Point => new Point(X, Y);
 
-        public PositionComponent(int x, int y) : base((int)ComponentTypeIds.Position)
+        private bool isTrigger=false;
+        public PositionComponent(int x, int y, bool IsTrigger) : base((int)ComponentTypeIds.Position)
         {
             X = x;
             Y = y;
+            this.isTrigger = IsTrigger;
         }
 
-        public PositionComponent(Point point) : base((int)ComponentTypeIds.Position)
+        public PositionComponent(Point point,bool isTrigger) : base((int)ComponentTypeIds.Position)
         {
             X = point.X;
             Y = point.Y;
+            this.isTrigger=IsTrigger;
+        }
+        
+        public bool IsTrigger
+        {
+            get { return isTrigger; }
         }
     }
 }

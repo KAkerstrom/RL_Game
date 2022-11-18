@@ -8,11 +8,12 @@ namespace RL_Game.Core
 {
     public class GameMap : Map
     {
+        public delegate void NewLevel();      
         private Rectangle _playerView = new Rectangle();
         private Tile[,] _tiles;
         private FieldOfView _fov;
-
-        public GameMap(Tile[,] tileMap, Point playerViewSize)
+        private Entity _endgoal;
+        public GameMap(Tile[,] tileMap, Point playerViewSize,Entity endgoal)
             : base(tileMap.GetUpperBound(0) + 1, tileMap.GetUpperBound(1) + 1)
         {
             var player = EntityManager.PlayerEntity;
@@ -22,7 +23,8 @@ namespace RL_Game.Core
                 throw new NullReferenceException("Player missing position component.");
             }
             var playerPosition = playerPositionComponent.Point;
-
+            
+            _endgoal = endgoal;
             _tiles = tileMap;
             _fov = new FieldOfView(this);
 
@@ -49,11 +51,11 @@ namespace RL_Game.Core
                 {
                     continue;
                 }
-                SetCellProperties(position.X, position.Y, true, false);
+                SetCellProperties(position.X, position.Y, true, position.IsTrigger);
             }
         }
 
-        public void Draw(RLConsole mapConsole)
+        public void Draw(RLConsole mapConsole, NewLevel nLevel)
         {
             foreach (var cell in GetCellsInRectangle(_playerView))
             {
@@ -85,12 +87,26 @@ namespace RL_Game.Core
             {
                 var draw = entity.GetFirstComponent((int)Component.ComponentTypeIds.Draw) as DrawComponent;
                 var position = entity.GetFirstComponent((int)Component.ComponentTypeIds.Position) as PositionComponent;
-
+                var endGoalPosition=_endgoal.GetFirstComponent((int)Component.ComponentTypeIds.Position) as PositionComponent;
+                bool breakFlag = false;
+                if (endGoalPosition == null)
+                {
+                    throw new NullReferenceException("Staircase is missing position component");
+                }
                 if (draw == null || position == null)
                 {
                     continue;
                 }
+                //Checks if Player has stepped on staircase and then calls for a new level to be generated.
+                if(entity.Tag=="Player" & (endGoalPosition.Point == position.Point))
+                {                   
+                    EntityManager.RemoveEntity(_endgoal.Id);
+                    position.X =5;position.Y =5;
+                    nLevel();
+                    breakFlag=true;
+                }
                 mapConsole.Set(position.X - _playerView.Left, position.Y - _playerView.Top, draw.Forecolor, DefaultColors.BackgroundVisible, draw.Symbol);
+                if (breakFlag) { break; }
             }
         }
 

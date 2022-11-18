@@ -41,19 +41,19 @@ namespace RL_Game.Core
         /// Add an empty entity to the game.
         /// </summary>
         /// <returns>The created entity's ID.</returns>
-        public static int AddEntity(bool suppressEvent = false)
+     /*   public static int AddEntity(bool suppressEvent = false)
         {
             return AddEntity(new List<Component>(), suppressEvent);
         }
-
+     */
         /// <summary>
         /// Add an entity to the game.
         /// </summary>
         /// <param name="components">The list of components that define the entity.</param>
         /// <returns>The created entity's ID.</returns>
-        public static int AddEntity(List<Component> components, bool suppressEvent = false)
+        public static int AddEntity(/*List<Component> components*/Entity entity, bool suppressEvent = false)
         {
-            var entity = new Entity(components);
+            //var entity = new Entity(components);
             _entities.Add(entity.Id, entity);
             if (!suppressEvent)
             {

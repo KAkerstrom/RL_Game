@@ -73,15 +73,14 @@ namespace RL_Game
             var playerComponents = new List<Component>()
             {
                 new DrawComponent('@', RLColor.White),
-                new PositionComponent(5,5)
+                new PositionComponent(5,5,false)
             };
             Entity player = new Entity(playerComponents);
+            player.Tag = "Player";
             EntityManager.InitializePlayer(player);
-
+            
             //MapGenerator mapGenerator = new MapGenerator(_mapWidth, _mapHeight, 40, 22, 7, _mapLevel);
-            GameMap = MapFactory.CreateMap(50, 50);
-            GameMap.UpdatePlayerFov();
-
+            CreateMap();
             // Set up a handler for RLNET's Update event
             _rootConsole.Update += OnRootConsoleUpdate;
 
@@ -94,6 +93,11 @@ namespace RL_Game
             // Begin RLNET's game loop
             _rootConsole.Run();
 
+        }
+        private static void CreateMap()
+        {
+            GameMap = MapFactory.CreateMap(50, 50);
+            GameMap.UpdatePlayerFov();
         }
 
         // Event handler for RLNET's Update event
@@ -127,7 +131,6 @@ namespace RL_Game
             {
                 return;
             }
-
             // Clear the consoles for a new level
             _mapConsole.Clear();
             //_statConsole.Clear();
@@ -135,7 +138,7 @@ namespace RL_Game
             //_inventoryConsole.Clear();
 
             // Draw everything to the map
-            GameMap.Draw(_mapConsole);
+            GameMap.Draw(_mapConsole,CreateMap);
             //Player.Draw(_mapConsole, GameMap);
             //Player.DrawStats(_statConsole, _statWidth, _statHeight);
             //Player.DrawInventory(_inventoryConsole);
