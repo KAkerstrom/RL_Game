@@ -22,7 +22,7 @@ namespace RL_Game.Components
         {
             X = point.X;
             Y = point.Y;
-            this.isTrigger=IsTrigger;
+            this.isTrigger=IsTrigger;   
         }
         
         public bool IsTrigger

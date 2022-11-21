@@ -77,7 +77,6 @@ namespace RL_Game
                 new PositionComponent(5,5,false)
             };
             Entity player = new Entity(playerComponents);
-            player.Tag = "Player";
             EntityManager.InitializePlayer(player);
             
             //MapGenerator mapGenerator = new MapGenerator(_mapWidth, _mapHeight, 40, 22, 7, _mapLevel);
@@ -99,6 +98,11 @@ namespace RL_Game
         {
             GameMap = MapFactory.CreateMap(50, 50);
             GameMap.UpdatePlayerFov();
+            if (!_renderRequired)//Prevents Map from being drawn twice on startup
+            {
+                _mapConsole.Clear();
+                GameMap.Draw(_mapConsole, CreateMap);
+            }
         }
 
         // Event handler for RLNET's Update event
@@ -139,6 +143,7 @@ namespace RL_Game
             //_inventoryConsole.Clear();
 
             // Draw everything to the map
+            _renderRequired = false;
             GameMap.Draw(_mapConsole,CreateMap);
             //Player.Draw(_mapConsole, GameMap);
             //Player.DrawStats(_statConsole, _statWidth, _statHeight);
@@ -157,7 +162,6 @@ namespace RL_Game
             // Tell RLNET to draw the console that we set
             _rootConsole.Draw();
 
-            _renderRequired = false;
         }
 
         private static void DrawRectangle(RLConsole console, Rectangle rectangle)

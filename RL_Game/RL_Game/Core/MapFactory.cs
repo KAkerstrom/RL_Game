@@ -2,6 +2,7 @@
 using RLNET;
 using RogueSharp;
 using RogueSharp.MapCreation;
+using RogueSharp.Random;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +13,11 @@ namespace RL_Game.Core
 {
     public static class MapFactory
     {
+        private static Random _levelSeed = new Random();
         public static GameMap CreateMap(int width, int height)
         {
             var tiles = new Tile[width, height];
-            Point goalPoint = new Point(5, 6);
+            Point goalPoint = new Point(_levelSeed.Next(7,width-1), _levelSeed.Next(7,height-1));
             IMapCreationStrategy<Map> mapCreationStrategy = new RandomRoomsMapCreationStrategy<Map>(width, height, 30, 5, 3);
             IMap generated;
             do
@@ -27,11 +29,10 @@ namespace RL_Game.Core
             //Temporary stairs addition
             var stairComponents = new List<Component>()
             {
-                new DrawComponent('%', RLColor.Magenta),
-                new PositionComponent(5,6,true)
+                new DrawComponent('%', RLColor.Green),
+                new PositionComponent(goalPoint.X,goalPoint.Y,true)
             };
             Entity stairs = new Entity(stairComponents);
-            stairs.Tag = "Trigger";
             EntityManager.AddEntity(stairs);
 
 

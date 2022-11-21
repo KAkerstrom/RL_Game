@@ -15,7 +15,6 @@ namespace RL_Game.Core
         private BitArray _componentBitArray;
 
         public int Id => _id;
-        public string Tag="default";
         public List<Component> Components => _components;
         public BitArray ComponentBitArray => _componentBitArray;
 

@@ -13,10 +13,9 @@ namespace RL_Game.Core
         private Tile[,] _tiles;
         private FieldOfView _fov;
         private Entity _endgoal;
-        public GameMap(Tile[,] tileMap, Point playerViewSize,Entity endgoal)
         public Rectangle View { get => new Rectangle(0, 0, _playerView.Width, _playerView.Height); }
 
-        public GameMap(Tile[,] tileMap, Point playerViewSize)
+        public GameMap(Tile[,] tileMap, Point playerViewSize, Entity endgoal)
             : base(tileMap.GetUpperBound(0) + 1, tileMap.GetUpperBound(1) + 1)
         {
             var player = EntityManager.PlayerEntity;
@@ -101,7 +100,7 @@ namespace RL_Game.Core
                     continue;
                 }
                 //Checks if Player has stepped on staircase and then calls for a new level to be generated.
-                if(entity.Tag=="Player" & (endGoalPosition.Point == position.Point))
+                if(entity==EntityManager.PlayerEntity & (endGoalPosition.Point == position.Point))
                 {                   
                     EntityManager.RemoveEntity(_endgoal.Id);
                     position.X =5;position.Y =5;
