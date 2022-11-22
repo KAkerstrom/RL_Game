@@ -24,6 +24,7 @@ namespace RL_Game.Core
         {
             Draw,
             Position,
+            Stat,
         }
     }
 
